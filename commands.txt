@@ -1,0 +1,5 @@
+python3 spy_downloader.py --interval 1h --update
+python3 spy_downloader.py --interval 15m --update
+
+python3 spy_analysis_maxmin.py spy_data/SPY_15m_yfinance_cummulative.csv --output report_maxmin.html
+python3 spy_analysis_1h.py     spy_data/SPY_1h_yfinance_cummulative.csv  --output report_1h.html

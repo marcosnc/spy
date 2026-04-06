@@ -40,10 +40,10 @@ python spy_analysis_1h.py datos.csv --output reporte.html --umbral-ret -0.3 --um
 ```
 Reads 1h CSV, engineers daily features, runs KMeans clustering to classify day types, computes next-day up/down probabilities with Wilson confidence intervals. Generates a self-contained HTML report with interactive charts.
 
-### `spy_maxmin_analysis.py` — Intraday high/low timing
+### `spy_analysis_maxmin.py` — Intraday high/low timing
 ```bash
-python spy_maxmin_analysis.py spy_data/SPY_15m_yfinance_*.csv
-python spy_maxmin_analysis.py datos_15m.csv --output reporte.html --ticker SPY --tz US/Eastern
+python spy_analysis_maxmin.py spy_data/SPY_15m_yfinance_*.csv
+python spy_analysis_maxmin.py datos_15m.csv --output reporte.html --ticker SPY --tz US/Eastern
 ```
 Works with any intraday granularity (15m, 30m, 1h). Finds which time slots most frequently produce the daily high/low. Generates a self-contained HTML report.
 
@@ -57,7 +57,7 @@ Works with any intraday granularity (15m, 30m, 1h). Finds which time slots most 
 3. Statistical analysis per cluster (Wilson CI on next-day direction)
 4. HTML report generation with embedded JSON data for Plotly charts
 
-**`spy_maxmin_analysis.py` pipeline:**
+**`spy_analysis_maxmin.py` pipeline:**
 1. `load_data()` — loads CSV, converts to NY timezone, validates columns
 2. `build_daily_extremes()` — per-day records of which time slot had the high/low
 3. `compute_freq_tables()` — frequency counts and percentages per time slot

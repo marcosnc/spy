@@ -14,9 +14,9 @@ Dependencias:
     pip install pandas numpy
 
 Uso:
-    python spy_maxmin_analysis.py datos_15m.csv
-    python spy_maxmin_analysis.py datos_15m.csv --output reporte.html
-    python spy_maxmin_analysis.py datos_15m.csv --ticker QQQQQ --tz US/Eastern
+    python spy_analysis_maxmin.py datos_15m.csv
+    python spy_analysis_maxmin.py datos_15m.csv --output reporte.html
+    python spy_analysis_maxmin.py datos_15m.csv --ticker QQQQQ --tz US/Eastern
 """
 
 import argparse
@@ -471,165 +471,165 @@ const minCum    = {min_cum_json};
 const total     = {total_days};
 
 // Colores dinámicos según intensidad
-function blueAlpha(v) {{
+function blueAlpha(v) {
   const maxV = Math.max(...maxCounts);
   const a = 0.25 + 0.75 * (v / maxV);
-  return `rgba(37, 99, 235, ${{a.toFixed(2)}})`;
-}}
-function orangeAlpha(v) {{
+  return `rgba(37, 99, 235, ${a.toFixed(2)})`;
+}
+function orangeAlpha(v) {
   const maxV = Math.max(...minCounts);
   const a = 0.25 + 0.75 * (v / maxV);
-  return `rgba(234, 88, 12, ${{a.toFixed(2)}})`;
-}}
+  return `rgba(234, 88, 12, ${a.toFixed(2)})`;
+}
 
 // ─── Gráfico principal (side-by-side) ────────────────────────────────────────
-new Chart(document.getElementById('mainChart'), {{
+new Chart(document.getElementById('mainChart'), {
   type: 'bar',
-  data: {{
+  data: {
     labels: times,
     datasets: [
-      {{
+      {
         label: 'Máximos',
         data: maxCounts,
         backgroundColor: '#2563eb',
         borderRadius: 3,
         borderSkipped: false,
-      }},
-      {{
+      },
+      {
         label: 'Mínimos',
         data: minCounts,
         backgroundColor: '#ea580c',
         borderRadius: 3,
         borderSkipped: false,
-      }}
+      }
     ]
-  }},
-  options: {{
+  },
+  options: {
     responsive: true, maintainAspectRatio: false,
-    plugins: {{
-      legend: {{ display: false }},
-      tooltip: {{
-        callbacks: {{
-          label: c => ` ${{c.dataset.label}}: ${{c.parsed.y}} días (${{(c.parsed.y/total*100).toFixed(1)}}%)`
-        }}
-      }}
-    }},
-    scales: {{
-      x: {{
-        grid: {{ display: false }},
-        ticks: {{
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: c => ` ${c.dataset.label}: ${c.parsed.y} días (${(c.parsed.y/total*100).toFixed(1)}%)`
+        }
+      }
+    },
+    scales: {
+      x: {
+        grid: { display: false },
+        ticks: {
           autoSkip: false, maxRotation: 45,
-          font: {{ size: 10 }}, color: '#9ca3af',
-          callback: (_, i) => {{
+          font: { size: 10 }, color: '#9ca3af',
+          callback: (_, i) => {
             const t = times[i];
             const [h, m] = t.split(':').map(Number);
             return m === 0 || t === times[0] || t === times[times.length-1] ? t : '';
-          }}
-        }}
-      }},
-      y: {{
+          }
+        }
+      },
+      y: {
         beginAtZero: true,
-        grid: {{ color: 'rgba(0,0,0,0.06)' }},
-        ticks: {{ font: {{ size: 11 }}, color: '#9ca3af' }},
-        title: {{ display: true, text: 'Cantidad de días', font: {{ size: 11 }}, color: '#9ca3af' }}
-      }}
-    }}
-  }}
-}});
+        grid: { color: 'rgba(0,0,0,0.06)' },
+        ticks: { font: { size: 11 }, color: '#9ca3af' },
+        title: { display: true, text: 'Cantidad de días', font: { size: 11 }, color: '#9ca3af' }
+      }
+    }
+  }
+});
 
 // ─── Solo máximos ────────────────────────────────────────────────────────────
-new Chart(document.getElementById('maxChart'), {{
+new Chart(document.getElementById('maxChart'), {
   type: 'bar',
-  data: {{
+  data: {
     labels: times,
-    datasets: [{{
+    datasets: [{
       data: maxCounts,
       backgroundColor: maxCounts.map(v => blueAlpha(v)),
       borderRadius: 3, borderSkipped: false,
-    }}]
-  }},
-  options: {{
+    }]
+  },
+  options: {
     responsive: true, maintainAspectRatio: false,
-    plugins: {{
-      legend: {{ display: false }},
-      tooltip: {{ callbacks: {{ label: c => ` ${{c.parsed.y}} días (${{(c.parsed.y/total*100).toFixed(1)}}%)` }} }}
-    }},
-    scales: {{
-      x: {{ grid: {{ display: false }}, ticks: {{ autoSkip: false, maxRotation: 45, font: {{ size: 9 }}, color: '#9ca3af',
-             callback: (_, i) => {{ const [h,m] = times[i].split(':').map(Number); return m===0||i===0||i===times.length-1?times[i]:''; }} }} }},
-      y: {{ beginAtZero: true, grid: {{ color: 'rgba(0,0,0,0.06)' }}, ticks: {{ font: {{ size: 10 }}, color: '#9ca3af' }} }}
-    }}
-  }}
-}});
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: c => ` ${c.parsed.y} días (${(c.parsed.y/total*100).toFixed(1)}%)` } }
+    },
+    scales: {
+      x: { grid: { display: false }, ticks: { autoSkip: false, maxRotation: 45, font: { size: 9 }, color: '#9ca3af',
+             callback: (_, i) => { const [h,m] = times[i].split(':').map(Number); return m===0||i===0||i===times.length-1?times[i]:''; } } },
+      y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.06)' }, ticks: { font: { size: 10 }, color: '#9ca3af' } }
+    }
+  }
+});
 
 // ─── Solo mínimos ────────────────────────────────────────────────────────────
-new Chart(document.getElementById('minChart'), {{
+new Chart(document.getElementById('minChart'), {
   type: 'bar',
-  data: {{
+  data: {
     labels: times,
-    datasets: [{{
+    datasets: [{
       data: minCounts,
       backgroundColor: minCounts.map(v => orangeAlpha(v)),
       borderRadius: 3, borderSkipped: false,
-    }}]
-  }},
-  options: {{
+    }]
+  },
+  options: {
     responsive: true, maintainAspectRatio: false,
-    plugins: {{
-      legend: {{ display: false }},
-      tooltip: {{ callbacks: {{ label: c => ` ${{c.parsed.y}} días (${{(c.parsed.y/total*100).toFixed(1)}}%)` }} }}
-    }},
-    scales: {{
-      x: {{ grid: {{ display: false }}, ticks: {{ autoSkip: false, maxRotation: 45, font: {{ size: 9 }}, color: '#9ca3af',
-             callback: (_, i) => {{ const [h,m] = times[i].split(':').map(Number); return m===0||i===0||i===times.length-1?times[i]:''; }} }} }},
-      y: {{ beginAtZero: true, grid: {{ color: 'rgba(0,0,0,0.06)' }}, ticks: {{ font: {{ size: 10 }}, color: '#9ca3af' }} }}
-    }}
-  }}
-}});
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: c => ` ${c.parsed.y} días (${(c.parsed.y/total*100).toFixed(1)}%)` } }
+    },
+    scales: {
+      x: { grid: { display: false }, ticks: { autoSkip: false, maxRotation: 45, font: { size: 9 }, color: '#9ca3af',
+             callback: (_, i) => { const [h,m] = times[i].split(':').map(Number); return m===0||i===0||i===times.length-1?times[i]:''; } } },
+      y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.06)' }, ticks: { font: { size: 10 }, color: '#9ca3af' } }
+    }
+  }
+});
 
 // ─── Curvas acumuladas ───────────────────────────────────────────────────────
-new Chart(document.getElementById('cumChart'), {{
+new Chart(document.getElementById('cumChart'), {
   type: 'line',
-  data: {{
+  data: {
     labels: times,
     datasets: [
-      {{
+      {
         label: 'Máximos acumulados',
         data: maxCum,
         borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,0.08)',
         borderWidth: 2, pointRadius: 0, fill: true, tension: 0.3,
-      }},
-      {{
+      },
+      {
         label: 'Mínimos acumulados',
         data: minCum,
         borderColor: '#ea580c', backgroundColor: 'rgba(234,88,12,0.08)',
         borderWidth: 2, pointRadius: 0, fill: true, tension: 0.3,
-      }}
+      }
     ]
-  }},
-  options: {{
+  },
+  options: {
     responsive: true, maintainAspectRatio: false,
-    plugins: {{
-      legend: {{ display: false }},
-      tooltip: {{ callbacks: {{ label: c => ` ${{c.dataset.label}}: ${{c.parsed.y.toFixed(1)}}% de los días` }} }}
-    }},
-    scales: {{
-      x: {{
-        grid: {{ display: false }},
-        ticks: {{
-          autoSkip: false, maxRotation: 45, font: {{ size: 10 }}, color: '#9ca3af',
-          callback: (_, i) => {{ const [h,m] = times[i].split(':').map(Number); return m===0||i===0||i===times.length-1?times[i]:''; }}
-        }}
-      }},
-      y: {{
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: c => ` ${c.dataset.label}: ${c.parsed.y.toFixed(1)}% de los días` } }
+    },
+    scales: {
+      x: {
+        grid: { display: false },
+        ticks: {
+          autoSkip: false, maxRotation: 45, font: { size: 10 }, color: '#9ca3af',
+          callback: (_, i) => { const [h,m] = times[i].split(':').map(Number); return m===0||i===0||i===times.length-1?times[i]:''; }
+        }
+      },
+      y: {
         min: 0, max: 100,
-        grid: {{ color: 'rgba(0,0,0,0.06)' }},
-        ticks: {{ font: {{ size: 11 }}, color: '#9ca3af', callback: v => v + '%' }},
-        title: {{ display: true, text: '% días con extremo ya formado', font: {{ size: 11 }}, color: '#9ca3af' }}
-      }}
-    }}
-  }}
-}});
+        grid: { color: 'rgba(0,0,0,0.06)' },
+        ticks: { font: { size: 11 }, color: '#9ca3af', callback: v => v + '%' },
+        title: { display: true, text: '% días con extremo ya formado', font: { size: 11 }, color: '#9ca3af' }
+      }
+    }
+  }
+});
 </script>
 </body>
 </html>
@@ -751,10 +751,10 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Ejemplos:
-  python spy_maxmin_analysis.py SPY_15m.csv
-  python spy_maxmin_analysis.py SPY_15m.csv --output reporte_maxmin.html
-  python spy_maxmin_analysis.py SPY_30m.csv --ticker QQQ
-  python spy_maxmin_analysis.py SPY_15m.csv --tz US/Eastern
+  python spy_analysis_maxmin.py SPY_15m.csv
+  python spy_analysis_maxmin.py SPY_15m.csv --output reporte_maxmin.html
+  python spy_analysis_maxmin.py SPY_30m.csv --ticker QQQ
+  python spy_analysis_maxmin.py SPY_15m.csv --tz US/Eastern
         """
     )
     parser.add_argument("csv",            help="Ruta al archivo CSV de datos intradiarios")
