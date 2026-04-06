@@ -328,6 +328,94 @@ def save_data(df: pd.DataFrame, output_dir: str, interval: str, source: str):
 
 
 # ─────────────────────────────────────────────
+# ACTUALIZACIÓN ACUMULATIVA
+# ─────────────────────────────────────────────
+
+def _remove_last_line(path: Path):
+    """Trunca el archivo eliminando la última línea no vacía."""
+    with open(path, "rb") as f:
+        f.seek(0, 2)
+        pos = f.tell() - 1
+        # saltar newlines finales
+        while pos > 0:
+            f.seek(pos)
+            if f.read(1) != b"\n":
+                break
+            pos -= 1
+        # retroceder hasta el newline anterior (inicio de la última línea)
+        while pos > 0:
+            f.seek(pos)
+            if f.read(1) == b"\n":
+                break
+            pos -= 1
+    with open(path, "r+b") as f:
+        f.truncate(pos + 1)  # conserva el \n del final de la penúltima línea
+
+
+def update_cumulative(interval: str, output_dir: str):
+    """
+    Actualiza el archivo acumulativo para el intervalo dado.
+
+    Lee el último timestamp del acumulativo existente, descarga los datos
+    nuevos desde esa fecha (inclusive, para capturar velas del mismo día
+    que quedaron incompletas), hace merge deduplicado y sobreescribe el
+    acumulativo.
+
+    El archivo debe seguir la convención de nombre:
+        {output_dir}/SPY_{interval}_yfinance_cummulative.csv
+    """
+    interval_safe = interval.replace("/", "_")
+    cumulative_path = Path(output_dir) / f"SPY_{interval_safe}_yfinance_cummulative.csv"
+
+    if not cumulative_path.exists():
+        print(f"ERROR: No se encontró el archivo acumulativo: {cumulative_path}")
+        print("Ejecutá primero sin --update para crear el archivo base, "
+              "luego renombralo a la convención: "
+              f"SPY_{interval_safe}_yfinance_cummulative.csv")
+        sys.exit(1)
+
+    # Leer solo la columna de índice para obtener el último timestamp
+    # sin tocar los valores numéricos (evita cambios de precisión float)
+    idx_series = pd.read_csv(cumulative_path, index_col=0, usecols=[0]).index
+    idx_series = pd.to_datetime(idx_series, utc=True).tz_convert("America/New_York")
+    n_existing = len(idx_series)
+    last_dt = idx_series.max()
+    start_date = last_dt.strftime("%Y-%m-%d")
+
+    print(f"Archivo acumulativo : {cumulative_path}")
+    print(f"Velas existentes    : {n_existing:,}")
+    print(f"Último registro     : {last_dt}")
+    print(f"Descargando desde   : {start_date}\n")
+
+    df_new = download_yfinance(interval=interval, start=start_date)
+
+    if df_new.empty:
+        print("No hay nuevos datos disponibles.")
+        return
+
+    # Convertir a NY timezone y quedarse con velas desde el último registro
+    # (inclusive: la última barra puede haber sido incompleta al momento de descarga)
+    df_new.index = df_new.index.tz_convert("America/New_York")
+    df_append = df_new[df_new.index >= last_dt]
+
+    if df_append.empty:
+        print("No hay velas nuevas para agregar.")
+        return
+
+    # Eliminar la última línea del acumulativo para reemplazarla con datos frescos
+    _remove_last_line(cumulative_path)
+
+    # Append al CSV sin reescribir el archivo: preserva precisión original
+    df_append.to_csv(cumulative_path, mode="a", header=False)
+
+    print(f"\n✓ {len(df_append)} nuevas velas agregadas")
+    print(f"✓ Acumulativo actualizado → {cumulative_path}  "
+          f"({n_existing + len(df_append):,} velas totales)")
+    print(f"  Nuevas velas: {df_append.index[0].strftime('%Y-%m-%d %H:%M')} → "
+          f"{df_append.index[-1].strftime('%Y-%m-%d %H:%M')}")
+
+
+# ─────────────────────────────────────────────
 # CLI
 # ─────────────────────────────────────────────
 
@@ -345,6 +433,12 @@ Ejemplos:
 
   # 1 hora, rango de fechas específico
   python spy_downloader.py --source yfinance --interval 1h --start 2024-01-01 --end 2024-12-31
+
+  # Actualizar acumulativo de 1h con los datos nuevos desde el último registro
+  python spy_downloader.py --interval 1h --update
+
+  # Actualizar acumulativo de 15m
+  python spy_downloader.py --interval 15m --update
 
   # Alpha Vantage, 30 minutos, 6 meses
   python spy_downloader.py --source alpha_vantage --interval 30min --apikey TU_KEY --months 6
@@ -380,6 +474,11 @@ Ejemplos:
                         help="Meses hacia atrás (para alpha_vantage y polygon)")
     parser.add_argument("--output", default="./spy_data",
                         help="Directorio de salida (default: ./spy_data)")
+    parser.add_argument("--update", action="store_true",
+                        help="Actualiza el acumulativo existente con datos nuevos "
+                             "(solo yfinance). Lee el último timestamp del archivo "
+                             "SPY_{interval}_yfinance_cummulative.csv, descarga lo "
+                             "que falta y hace merge deduplicado.")
 
     return parser.parse_args()
 
@@ -390,6 +489,13 @@ def main():
     print("\n══════════════════════════════════════════════")
     print("       SPY Historical Data Downloader")
     print("══════════════════════════════════════════════\n")
+
+    if args.update:
+        if args.source != "yfinance":
+            print("ERROR: --update solo está soportado con --source yfinance")
+            sys.exit(1)
+        update_cumulative(interval=args.interval, output_dir=args.output)
+        return
 
     df = pd.DataFrame()
 
