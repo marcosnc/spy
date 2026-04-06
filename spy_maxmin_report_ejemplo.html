@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPY — Análisis de Máximos y Mínimos Intradiarios</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  :root {
+    --bg: #f9fafb; --surface: #ffffff; --surface2: #f3f4f6;
+    --border: #e5e7eb; --border2: #d1d5db;
+    --text: #111827; --muted: #6b7280; --hint: #9ca3af;
+    --blue:   #2563eb; --blue-bg:  #dbeafe; --blue-dark: #1e40af;
+    --orange: #ea580c; --orange-bg: #ffedd5; --orange-dark: #9a3412;
+    --green:  #16a34a; --green-bg: #dcfce7;
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: var(--bg); color: var(--text);
+    font-size: 14px; line-height: 1.5;
+  }
+  .page { max-width: 1060px; margin: 0 auto; padding: 32px 20px 60px; }
+
+  .header { margin-bottom: 28px; }
+  .header h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+  .header p  { color: var(--muted); font-size: 13px; }
+
+  /* metric cards */
+  .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 28px; }
+  .mc { background: var(--surface); border: 1px solid var(--border);
+        border-radius: var(--radius); padding: 14px 16px; }
+  .mc.blue-accent   { border-left: 4px solid var(--blue); }
+  .mc.orange-accent { border-left: 4px solid var(--orange); }
+  .mc .lbl { font-size: 11px; color: var(--muted); text-transform: uppercase;
+             letter-spacing: .05em; margin-bottom: 4px; }
+  .mc .val { font-size: 26px; font-weight: 700; }
+  .mc .sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* section title */
+  .sec { font-size: 11px; font-weight: 700; color: var(--muted);
+         text-transform: uppercase; letter-spacing: .07em; margin-bottom: 14px; }
+
+  /* chart cards */
+  .card { background: var(--surface); border: 1px solid var(--border);
+          border-radius: var(--radius); padding: 20px 24px; margin-bottom: 20px; }
+  .chart-wrap        { position: relative; width: 100%; height: 280px; }
+  .chart-wrap-tall   { position: relative; width: 100%; height: 200px; }
+
+  /* legend row */
+  .legend { display: flex; gap: 20px; margin-bottom: 14px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 6px;
+                 font-size: 12px; color: var(--muted); }
+  .legend-swatch { width: 12px; height: 12px; border-radius: 2px; }
+
+  /* two-col grid */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+
+  /* zone bars */
+  .zones { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 14px; }
+  .zone-block h4 { font-size: 12px; font-weight: 600; margin-bottom: 8px; color: var(--muted); }
+  .zone-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 12px; }
+  .zone-name { min-width: 70px; color: var(--muted); }
+  .zone-bar-bg { flex: 1; background: var(--border); border-radius: 3px; height: 6px; overflow: hidden; }
+  .zone-bar-fill { height: 100%; border-radius: 3px; }
+  .zone-val { min-width: 34px; text-align: right; font-weight: 600; font-size: 12px; }
+
+  /* frequency table */
+  .freq-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .freq-table th { text-align: left; color: var(--muted); font-weight: 600;
+                   font-size: 11px; padding: 7px 10px;
+                   border-bottom: 2px solid var(--border); background: var(--surface2); }
+  .freq-table td { padding: 6px 10px; border-bottom: 1px solid var(--border); }
+  .freq-table tr:last-child td { border-bottom: none; }
+  .freq-table tr:hover { background: var(--surface2); }
+  .freq-table .bar-cell { width: 120px; }
+  .mini-bar-bg { background: var(--border); border-radius: 2px; height: 5px;
+                 width: 100px; overflow: hidden; margin-top: 3px; }
+  .mini-bar    { height: 100%; border-radius: 2px; }
+  .rank-badge  { display: inline-block; font-size: 10px; font-weight: 700;
+                 padding: 1px 6px; border-radius: 3px; }
+  .rank-1 { background: #fef08a; color: #713f12; }
+  .rank-2 { background: #e2e8f0; color: #475569; }
+  .rank-3 { background: #fed7aa; color: #9a3412; }
+
+  /* insight boxes */
+  .insights { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
+  .insight { background: var(--surface); border: 1px solid var(--border);
+             border-radius: var(--radius); padding: 14px 16px; }
+  .insight.blue   { border-top: 3px solid var(--blue); }
+  .insight.orange { border-top: 3px solid var(--orange); }
+  .insight h3 { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+  .insight p  { font-size: 12px; color: var(--muted); line-height: 1.6; }
+  .insight .big { font-size: 22px; font-weight: 700; margin: 4px 0; }
+
+  .footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--border);
+            font-size: 11px; color: var(--hint); line-height: 1.7; }
+
+  @media (max-width: 700px) {
+    .metrics { grid-template-columns: 1fr 1fr; }
+    .grid2   { grid-template-columns: 1fr; }
+    .insights{ grid-template-columns: 1fr; }
+    .zones   { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="header">
+    <h1>SPY — Análisis de Máximos y Mínimos Intradiarios</h1>
+    <p>Generado el 26/03/2026 17:16 &nbsp;·&nbsp; Datos: 2025-12-29 → 2026-03-25 &nbsp;·&nbsp;
+       60 días de trading &nbsp;·&nbsp; Granularidad: 15 min &nbsp;·&nbsp; Horario: ET</p>
+  </div>
+
+  <!-- METRIC CARDS -->
+  <div class="metrics">
+    <div class="mc blue-accent">
+      <div class="lbl">Top horario — Máximos</div>
+      <div class="val" style="color:var(--blue);">09:30</div>
+      <div class="sub">13 días · 21.7% del total</div>
+    </div>
+    <div class="mc blue-accent">
+      <div class="lbl">2° horario — Máximos</div>
+      <div class="val" style="color:var(--blue); font-size:20px;">09:45</div>
+      <div class="sub">11.7% del total</div>
+    </div>
+    <div class="mc orange-accent">
+      <div class="lbl">Top horario — Mínimos</div>
+      <div class="val" style="color:var(--orange);">09:30</div>
+      <div class="sub">16 días · 26.7% del total</div>
+    </div>
+    <div class="mc orange-accent">
+      <div class="lbl">2° horario — Mínimos</div>
+      <div class="val" style="color:var(--orange); font-size:20px;">15:45</div>
+      <div class="sub">11.7% del total</div>
+    </div>
+  </div>
+
+  <!-- CHART PRINCIPAL: frecuencias side-by-side -->
+  <div class="card">
+    <div class="sec">Frecuencia de máximos y mínimos diarios por franja horaria</div>
+    <div class="legend">
+      <div class="legend-item">
+        <div class="legend-swatch" style="background:#2563eb;"></div>
+        Máximos diarios
+      </div>
+      <div class="legend-item">
+        <div class="legend-swatch" style="background:#ea580c;"></div>
+        Mínimos diarios
+      </div>
+    </div>
+    <div class="chart-wrap">
+      <canvas id="mainChart"></canvas>
+    </div>
+  </div>
+
+  <!-- GRÁFICO SOLO MÁXIMOS + SOLO MÍNIMOS -->
+  <div class="grid2">
+    <div class="card">
+      <div class="sec" style="color:var(--blue-dark);">Distribución de máximos</div>
+      <div class="chart-wrap-tall">
+        <canvas id="maxChart"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="sec" style="color:var(--orange-dark);">Distribución de mínimos</div>
+      <div class="chart-wrap-tall">
+        <canvas id="minChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- CURVAS ACUMULADAS -->
+  <div class="card">
+    <div class="sec">Distribución acumulada — ¿a qué hora ya se formó el extremo?</div>
+    <div class="legend">
+      <div class="legend-item">
+        <div class="legend-swatch" style="background:#2563eb;"></div>
+        % días cuyo máximo ya ocurrió
+      </div>
+      <div class="legend-item">
+        <div class="legend-swatch" style="background:#ea580c;"></div>
+        % días cuyo mínimo ya ocurrió
+      </div>
+    </div>
+    <div class="chart-wrap">
+      <canvas id="cumChart"></canvas>
+    </div>
+  </div>
+
+  <!-- INSIGHTS -->
+  <div class="insights">
+    <div class="insight blue">
+      <h3>Zona de apertura (primer cuarto de la sesión)</h3>
+      <div class="big" style="color:var(--blue);">43.3%</div>
+      <p>de los máximos diarios se forman en la apertura. 51.7% de los mínimos también. La primera hora concentra la mayor volatilidad.</p>
+    </div>
+    <div class="insight orange">
+      <h3>Zona de cierre (último cuarto de la sesión)</h3>
+      <div class="big" style="color:var(--orange);">26.7%</div>
+      <p>de los máximos se forman al cierre. 23.3% de los mínimos. El rebalanceo institucional genera el segundo pico de actividad.</p>
+    </div>
+    <div class="insight blue">
+      <h3>Tiempo promedio al máximo</h3>
+      <div class="big" style="color:var(--blue);">146 min</div>
+      <p>desde la apertura hasta que se registra el high del día (promedio). Equivale a la 11ª barra de la sesión.</p>
+    </div>
+    <div class="insight orange">
+      <h3>Tiempo promedio al mínimo</h3>
+      <div class="big" style="color:var(--orange);">136 min</div>
+      <p>desde la apertura hasta que se registra el low del día (promedio). Equivale a la 10ª barra de la sesión.</p>
+    </div>
+  </div>
+
+  <!-- DISTRIBUCIÓN POR ZONAS -->
+  <div class="card">
+    <div class="sec">Concentración por zona de la sesión</div>
+    <div class="zones">
+      <div class="zone-block">
+        <h4>Máximos por zona</h4>
+        
+        <div class="zone-row">
+          <span class="zone-name">Apertura</span>
+          <div class="zone-bar-bg">
+            <div class="zone-bar-fill" style="width:43.3%;background:#2563eb;"></div>
+          </div>
+          <span class="zone-val" style="color:#2563eb;">43.3%</span>
+        </div>
+        <div class="zone-row">
+          <span class="zone-name">Mediodía</span>
+          <div class="zone-bar-bg">
+            <div class="zone-bar-fill" style="width:30.0%;background:#2563eb;"></div>
+          </div>
+          <span class="zone-val" style="color:#2563eb;">30.0%</span>
+        </div>
+        <div class="zone-row">
+          <span class="zone-name">Cierre</span>
+          <div class="zone-bar-bg">
+            <div class="zone-bar-fill" style="width:26.7%;background:#2563eb;"></div>
+          </div>
+          <span class="zone-val" style="color:#2563eb;">26.7%</span>
+        </div>
+      </div>
+      <div class="zone-block">
+        <h4>Mínimos por zona</h4>
+        
+        <div class="zone-row">
+          <span class="zone-name">Apertura</span>
+          <div class="zone-bar-bg">
+            <div class="zone-bar-fill" style="width:51.7%;background:#ea580c;"></div>
+          </div>
+          <span class="zone-val" style="color:#ea580c;">51.7%</span>
+        </div>
+        <div class="zone-row">
+          <span class="zone-name">Mediodía</span>
+          <div class="zone-bar-bg">
+            <div class="zone-bar-fill" style="width:25.0%;background:#ea580c;"></div>
+          </div>
+          <span class="zone-val" style="color:#ea580c;">25.0%</span>
+        </div>
+        <div class="zone-row">
+          <span class="zone-name">Cierre</span>
+          <div class="zone-bar-bg">
+            <div class="zone-bar-fill" style="width:23.3%;background:#ea580c;"></div>
+          </div>
+          <span class="zone-val" style="color:#ea580c;">23.3%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLA DE FRECUENCIAS -->
+  <div class="card">
+    <div class="sec">Tabla completa por franja horaria</div>
+    <table class="freq-table">
+      <thead>
+        <tr>
+          <th>Franja</th>
+          <th>Máximos (n)</th>
+          <th>Máximos (%)</th>
+          <th style="width:120px;">Distribución máx.</th>
+          <th>Mínimos (n)</th>
+          <th>Mínimos (%)</th>
+          <th style="width:120px;">Distribución mín.</th>
+          <th>Acum. máx.</th>
+          <th>Acum. mín.</th>
+        </tr>
+      </thead>
+      <tbody>
+        
+        <tr>
+          <td><strong>09:30</strong></td>
+          <td>13 <span class="rank-badge rank-1">1°</span></td>
+          <td>21.7%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:100%;background:#2563eb;"></div>
+            </div>
+          </td>
+          <td>16 <span class="rank-badge rank-1">1°</span></td>
+          <td>26.7%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:100%;background:#ea580c;"></div>
+            </div>
+          </td>
+          <td>21.7%</td>
+          <td>26.7%</td>
+        </tr>
+        <tr>
+          <td><strong>09:45</strong></td>
+          <td>7 <span class="rank-badge rank-2">2°</span></td>
+          <td>11.7%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:54%;background:#2563eb;"></div>
+            </div>
+          </td>
+          <td>4 </td>
+          <td>6.7%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:25%;background:#ea580c;"></div>
+            </div>
+          </td>
+          <td>33.3%</td>
+          <td>33.3%</td>
+        </tr>
+        <tr>
+          <td><strong>10:00</strong></td>
+          <td>5 <span class="rank-badge rank-3">3°</span></td>
+          <td>8.3%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:38%;background:#2563eb;"></div>
+            </div>
+          </td>
+          <td>4 <span class="rank-badge rank-3">3°</span></td>
+          <td>6.7%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:25%;background:#ea580c;"></div>
+            </div>
+          </td>
+          <td>41.7%</td>
+          <td>40.0%</td>
+        </tr>
+        <tr>
+          <td><strong>10:15</strong></td>
+          <td>0 </td>
+          <td>0.0%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:0%;background:#2563eb;"></div>
+            </div>
+          </td>
+          <td>2 </td>
+          <td>3.3%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:12%;background:#ea580c;"></div>
+            </div>
+          </td>
+          <td>41.7%</td>
+          <td>43.3%</td>
+        </tr>
+        <tr>
+          <td><strong>10:30</strong></td>
+          <td>1 </td>
+          <td>1.7%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:8%;background:#2563eb;"></div>
+            </div>
+          </td>
+          <td>4 </td>
+          <td>6.7%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:25%;background:#ea580c;"></div>
+            </div>
+          </td>
+          <td>43.3%</td>
+          <td>50.0%</td>
+        </tr>
+        <tr>
+          <td><strong>10:45</strong></td>
+          <td>0 </td>
+          <td>0.0%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:0%;background:#2563eb;"></div>
+            </div>
+          </td>
+          <td>1 </td>
+          <td>1.7%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:6%;background:#ea580c;"></div>
+            </div>
+          </td>
+          <td>43.3%</td>
+          <td>51.7%</td>
+        </tr>
+        <tr>
+          <td><strong>11:00</strong></td>
+          <td>3 </td>
+          <td>5.0%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:23%;background:#2563eb;"></div>
+            </div>
+          </td>
+          <td>2 </td>
+          <td>3.3%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:12%;background:#ea580c;"></div>
+            </div>
+          </td>
+          <td>48.3%</td>
+          <td>55.0%</td>
+        </tr>
+        <tr>
+          <td><strong>11:15</strong></td>
+          <td>1 </td>
+          <td>1.7%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:8%;background:#2563eb;"></div>
+            </div>
+          </td>
+          <td>2 </td>
+          <td>3.3%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:12%;background:#ea580c;"></div>
+            </div>
+          </td>
+          <td>50.0%</td>
+          <td>58.3%</td>
+        </tr>
+        <tr>
+          <td><strong>11:30</strong></td>
+          <td>1 </td>
+          <td>1.7%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:8%;background:#2563eb;"></div>
+            </div>
+          </td>
+          <td>0 </td>
+          <td>0.0%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:0%;background:#ea580c;"></div>
+            </div>
+          </td>
+          <td>51.7%</td>
+          <td>58.3%</td>
+        </tr>
+        <tr>
+          <td><strong>11:45</strong></td>
+          <td>2 </td>
+          <td>3.3%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:15%;background:#2563eb;"></div>
+            </div>
+          </td>
+          <td>0 </td>
+          <td>0.0%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:0%;background:#ea580c;"></div>
+            </div>
+          </td>
+          <td>55.0%</td>
+          <td>58.3%</td>
+        </tr>
+        <tr>
+          <td><strong>12:00</strong></td>
+          <td>2 </td>
+          <td>3.3%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:15%;background:#2563eb;"></div>
+            </div>
+          </td>
+          <td>1 </td>
+          <td>1.7%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:6%;background:#ea580c;"></div>
+            </div>
+          </td>
+          <td>58.3%</td>
+          <td>60.0%</td>
+        </tr>
+        <tr>
+          <td><strong>12:15</strong></td>
+          <td>0 </td>
+          <td>0.0%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:0%;background:#2563eb;"></div>
+            </div>
+          </td>
+          <td>4 </td>
+          <td>6.7%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:25%;background:#ea580c;"></div>
+            </div>
+          </td>
+          <td>58.3%</td>
+          <td>66.7%</td>
+        </tr>
+        <tr>
+          <td><strong>12:30</strong></td>
+          <td>1 </td>
+          <td>1.7%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:8%;background:#2563eb;"></div>
+            </div>
+          </td>
+          <td>1 </td>
+          <td>1.7%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:6%;background:#ea580c;"></div>
+            </div>
+          </td>
+          <td>60.0%</td>
+          <td>68.3%</td>
+        </tr>
+        <tr>
+          <td><strong>12:45</strong></td>
+          <td>1 </td>
+          <td>1.7%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:8%;background:#2563eb;"></div>
+            </div>
+          </td>
+          <td>1 </td>
+          <td>1.7%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:6%;background:#ea580c;"></div>
+            </div>
+          </td>
+          <td>61.7%</td>
+          <td>70.0%</td>
+        </tr>
+        <tr>
+          <td><strong>13:00</strong></td>
+          <td>3 </td>
+          <td>5.0%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:23%;background:#2563eb;"></div>
+            </div>
+          </td>
+          <td>0 </td>
+          <td>0.0%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:0%;background:#ea580c;"></div>
+            </div>
+          </td>
+          <td>66.7%</td>
+          <td>70.0%</td>
+        </tr>
+        <tr>
+          <td><strong>13:15</strong></td>
+          <td>1 </td>
+          <td>1.7%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:8%;background:#2563eb;"></div>
+            </div>
+          </td>
+          <td>1 </td>
+          <td>1.7%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:6%;background:#ea580c;"></div>
+            </div>
+          </td>
+          <td>68.3%</td>
+          <td>71.7%</td>
+        </tr>
+        <tr>
+          <td><strong>13:30</strong></td>
+          <td>1 </td>
+          <td>1.7%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:8%;background:#2563eb;"></div>
+            </div>
+          </td>
+          <td>1 </td>
+          <td>1.7%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:6%;background:#ea580c;"></div>
+            </div>
+          </td>
+          <td>70.0%</td>
+          <td>73.3%</td>
+        </tr>
+        <tr>
+          <td><strong>13:45</strong></td>
+          <td>1 </td>
+          <td>1.7%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:8%;background:#2563eb;"></div>
+            </div>
+          </td>
+          <td>1 </td>
+          <td>1.7%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:6%;background:#ea580c;"></div>
+            </div>
+          </td>
+          <td>71.7%</td>
+          <td>75.0%</td>
+        </tr>
+        <tr>
+          <td><strong>14:00</strong></td>
+          <td>1 </td>
+          <td>1.7%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:8%;background:#2563eb;"></div>
+            </div>
+          </td>
+          <td>1 </td>
+          <td>1.7%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:6%;background:#ea580c;"></div>
+            </div>
+          </td>
+          <td>73.3%</td>
+          <td>76.7%</td>
+        </tr>
+        <tr>
+          <td><strong>14:15</strong></td>
+          <td>1 </td>
+          <td>1.7%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:8%;background:#2563eb;"></div>
+            </div>
+          </td>
+          <td>0 </td>
+          <td>0.0%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:0%;background:#ea580c;"></div>
+            </div>
+          </td>
+          <td>75.0%</td>
+          <td>76.7%</td>
+        </tr>
+        <tr>
+          <td><strong>14:30</strong></td>
+          <td>2 </td>
+          <td>3.3%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:15%;background:#2563eb;"></div>
+            </div>
+          </td>
+          <td>2 </td>
+          <td>3.3%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:12%;background:#ea580c;"></div>
+            </div>
+          </td>
+          <td>78.3%</td>
+          <td>80.0%</td>
+        </tr>
+        <tr>
+          <td><strong>14:45</strong></td>
+          <td>2 </td>
+          <td>3.3%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:15%;background:#2563eb;"></div>
+            </div>
+          </td>
+          <td>0 </td>
+          <td>0.0%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:0%;background:#ea580c;"></div>
+            </div>
+          </td>
+          <td>81.7%</td>
+          <td>80.0%</td>
+        </tr>
+        <tr>
+          <td><strong>15:00</strong></td>
+          <td>4 </td>
+          <td>6.7%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:31%;background:#2563eb;"></div>
+            </div>
+          </td>
+          <td>1 </td>
+          <td>1.7%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:6%;background:#ea580c;"></div>
+            </div>
+          </td>
+          <td>88.3%</td>
+          <td>81.7%</td>
+        </tr>
+        <tr>
+          <td><strong>15:15</strong></td>
+          <td>1 </td>
+          <td>1.7%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:8%;background:#2563eb;"></div>
+            </div>
+          </td>
+          <td>0 </td>
+          <td>0.0%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:0%;background:#ea580c;"></div>
+            </div>
+          </td>
+          <td>90.0%</td>
+          <td>81.7%</td>
+        </tr>
+        <tr>
+          <td><strong>15:30</strong></td>
+          <td>1 </td>
+          <td>1.7%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:8%;background:#2563eb;"></div>
+            </div>
+          </td>
+          <td>4 </td>
+          <td>6.7%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:25%;background:#ea580c;"></div>
+            </div>
+          </td>
+          <td>91.7%</td>
+          <td>88.3%</td>
+        </tr>
+        <tr>
+          <td><strong>15:45</strong></td>
+          <td>5 </td>
+          <td>8.3%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:38%;background:#2563eb;"></div>
+            </div>
+          </td>
+          <td>7 <span class="rank-badge rank-2">2°</span></td>
+          <td>11.7%</td>
+          <td class="bar-cell">
+            <div class="mini-bar-bg">
+              <div class="mini-bar" style="width:44%;background:#ea580c;"></div>
+            </div>
+          </td>
+          <td>100.0%</td>
+          <td>100.0%</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="footer">
+    <strong>Metodología:</strong> para cada día de trading se identifica la barra (vela) donde se registra
+    el high absoluto del día (usando la columna <em>high</em>) y la barra donde se registra el low absoluto
+    (usando la columna <em>low</em>). Se contabiliza la franja horaria de inicio de cada barra.
+    En caso de empate se toma la primera ocurrencia. Días con menos de 4 barras son excluidos.
+    <br><br>
+    <strong>Aviso:</strong> este análisis es descriptivo de comportamiento histórico y no constituye
+    asesoramiento financiero. Los patrones pasados no garantizan resultados futuros.
+  </div>
+</div>
+
+<script>
+const times     = ["09:30", "09:45", "10:00", "10:15", "10:30", "10:45", "11:00", "11:15", "11:30", "11:45", "12:00", "12:15", "12:30", "12:45", "13:00", "13:15", "13:30", "13:45", "14:00", "14:15", "14:30", "14:45", "15:00", "15:15", "15:30", "15:45"];
+const maxCounts = [13, 7, 5, 0, 1, 0, 3, 1, 1, 2, 2, 0, 1, 1, 3, 1, 1, 1, 1, 1, 2, 2, 4, 1, 1, 5];
+const minCounts = [16, 4, 4, 2, 4, 1, 2, 2, 0, 0, 1, 4, 1, 1, 0, 1, 1, 1, 1, 0, 2, 0, 1, 0, 4, 7];
+const maxCum    = [21.7, 33.3, 41.7, 41.7, 43.3, 43.3, 48.3, 50.0, 51.7, 55.0, 58.3, 58.3, 60.0, 61.7, 66.7, 68.3, 70.0, 71.7, 73.3, 75.0, 78.3, 81.7, 88.3, 90.0, 91.7, 100.0];
+const minCum    = [26.7, 33.3, 40.0, 43.3, 50.0, 51.7, 55.0, 58.3, 58.3, 58.3, 60.0, 66.7, 68.3, 70.0, 70.0, 71.7, 73.3, 75.0, 76.7, 76.7, 80.0, 80.0, 81.7, 81.7, 88.3, 100.0];
+const total     = 60;
+
+// Colores dinámicos según intensidad
+function blueAlpha(v) {{
+  const maxV = Math.max(...maxCounts);
+  const a = 0.25 + 0.75 * (v / maxV);
+  return `rgba(37, 99, 235, ${{a.toFixed(2)}})`;
+}}
+function orangeAlpha(v) {{
+  const maxV = Math.max(...minCounts);
+  const a = 0.25 + 0.75 * (v / maxV);
+  return `rgba(234, 88, 12, ${{a.toFixed(2)}})`;
+}}
+
+// ─── Gráfico principal (side-by-side) ────────────────────────────────────────
+new Chart(document.getElementById('mainChart'), {{
+  type: 'bar',
+  data: {{
+    labels: times,
+    datasets: [
+      {{
+        label: 'Máximos',
+        data: maxCounts,
+        backgroundColor: '#2563eb',
+        borderRadius: 3,
+        borderSkipped: false,
+      }},
+      {{
+        label: 'Mínimos',
+        data: minCounts,
+        backgroundColor: '#ea580c',
+        borderRadius: 3,
+        borderSkipped: false,
+      }}
+    ]
+  }},
+  options: {{
+    responsive: true, maintainAspectRatio: false,
+    plugins: {{
+      legend: {{ display: false }},
+      tooltip: {{
+        callbacks: {{
+          label: c => ` ${{c.dataset.label}}: ${{c.parsed.y}} días (${{(c.parsed.y/total*100).toFixed(1)}}%)`
+        }}
+      }}
+    }},
+    scales: {{
+      x: {{
+        grid: {{ display: false }},
+        ticks: {{
+          autoSkip: false, maxRotation: 45,
+          font: {{ size: 10 }}, color: '#9ca3af',
+          callback: (_, i) => {{
+            const t = times[i];
+            const [h, m] = t.split(':').map(Number);
+            return m === 0 || t === times[0] || t === times[times.length-1] ? t : '';
+          }}
+        }}
+      }},
+      y: {{
+        beginAtZero: true,
+        grid: {{ color: 'rgba(0,0,0,0.06)' }},
+        ticks: {{ font: {{ size: 11 }}, color: '#9ca3af' }},
+        title: {{ display: true, text: 'Cantidad de días', font: {{ size: 11 }}, color: '#9ca3af' }}
+      }}
+    }}
+  }}
+}});
+
+// ─── Solo máximos ────────────────────────────────────────────────────────────
+new Chart(document.getElementById('maxChart'), {{
+  type: 'bar',
+  data: {{
+    labels: times,
+    datasets: [{{
+      data: maxCounts,
+      backgroundColor: maxCounts.map(v => blueAlpha(v)),
+      borderRadius: 3, borderSkipped: false,
+    }}]
+  }},
+  options: {{
+    responsive: true, maintainAspectRatio: false,
+    plugins: {{
+      legend: {{ display: false }},
+      tooltip: {{ callbacks: {{ label: c => ` ${{c.parsed.y}} días (${{(c.parsed.y/total*100).toFixed(1)}}%)` }} }}
+    }},
+    scales: {{
+      x: {{ grid: {{ display: false }}, ticks: {{ autoSkip: false, maxRotation: 45, font: {{ size: 9 }}, color: '#9ca3af',
+             callback: (_, i) => {{ const [h,m] = times[i].split(':').map(Number); return m===0||i===0||i===times.length-1?times[i]:''; }} }} }},
+      y: {{ beginAtZero: true, grid: {{ color: 'rgba(0,0,0,0.06)' }}, ticks: {{ font: {{ size: 10 }}, color: '#9ca3af' }} }}
+    }}
+  }}
+}});
+
+// ─── Solo mínimos ────────────────────────────────────────────────────────────
+new Chart(document.getElementById('minChart'), {{
+  type: 'bar',
+  data: {{
+    labels: times,
+    datasets: [{{
+      data: minCounts,
+      backgroundColor: minCounts.map(v => orangeAlpha(v)),
+      borderRadius: 3, borderSkipped: false,
+    }}]
+  }},
+  options: {{
+    responsive: true, maintainAspectRatio: false,
+    plugins: {{
+      legend: {{ display: false }},
+      tooltip: {{ callbacks: {{ label: c => ` ${{c.parsed.y}} días (${{(c.parsed.y/total*100).toFixed(1)}}%)` }} }}
+    }},
+    scales: {{
+      x: {{ grid: {{ display: false }}, ticks: {{ autoSkip: false, maxRotation: 45, font: {{ size: 9 }}, color: '#9ca3af',
+             callback: (_, i) => {{ const [h,m] = times[i].split(':').map(Number); return m===0||i===0||i===times.length-1?times[i]:''; }} }} }},
+      y: {{ beginAtZero: true, grid: {{ color: 'rgba(0,0,0,0.06)' }}, ticks: {{ font: {{ size: 10 }}, color: '#9ca3af' }} }}
+    }}
+  }}
+}});
+
+// ─── Curvas acumuladas ───────────────────────────────────────────────────────
+new Chart(document.getElementById('cumChart'), {{
+  type: 'line',
+  data: {{
+    labels: times,
+    datasets: [
+      {{
+        label: 'Máximos acumulados',
+        data: maxCum,
+        borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,0.08)',
+        borderWidth: 2, pointRadius: 0, fill: true, tension: 0.3,
+      }},
+      {{
+        label: 'Mínimos acumulados',
+        data: minCum,
+        borderColor: '#ea580c', backgroundColor: 'rgba(234,88,12,0.08)',
+        borderWidth: 2, pointRadius: 0, fill: true, tension: 0.3,
+      }}
+    ]
+  }},
+  options: {{
+    responsive: true, maintainAspectRatio: false,
+    plugins: {{
+      legend: {{ display: false }},
+      tooltip: {{ callbacks: {{ label: c => ` ${{c.dataset.label}}: ${{c.parsed.y.toFixed(1)}}% de los días` }} }}
+    }},
+    scales: {{
+      x: {{
+        grid: {{ display: false }},
+        ticks: {{
+          autoSkip: false, maxRotation: 45, font: {{ size: 10 }}, color: '#9ca3af',
+          callback: (_, i) => {{ const [h,m] = times[i].split(':').map(Number); return m===0||i===0||i===times.length-1?times[i]:''; }}
+        }}
+      }},
+      y: {{
+        min: 0, max: 100,
+        grid: {{ color: 'rgba(0,0,0,0.06)' }},
+        ticks: {{ font: {{ size: 11 }}, color: '#9ca3af', callback: v => v + '%' }},
+        title: {{ display: true, text: '% días con extremo ya formado', font: {{ size: 11 }}, color: '#9ca3af' }}
+      }}
+    }}
+  }}
+}});
+</script>
+</body>
+</html>
