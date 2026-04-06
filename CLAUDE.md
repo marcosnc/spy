@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-A SPY ETF data analysis toolkit with three standalone Python scripts. No build system or test framework.
+A SPY ETF data analysis toolkit with standalone Python scripts. No build system or test framework.
 
 ## Dependencies
 
@@ -40,6 +40,13 @@ python spy_analysis_1h.py datos.csv --output reporte.html --umbral-ret -0.3 --um
 ```
 Reads 1h CSV, engineers daily features, runs KMeans clustering to classify day types, computes next-day up/down probabilities with Wilson confidence intervals. Generates a self-contained HTML report with interactive charts.
 
+### `spy_analysis_live.py` — Live day analyzer
+```bash
+python spy_analysis_live.py spy_data/SPY_1h_yfinance_cummulative.csv spy_data/SPY_15m_yfinance_cummulative.csv
+python spy_analysis_live.py datos_1h.csv datos_15m.csv --output reporte.html
+```
+Takes both cumulative CSVs (including today's partial data) and generates an HTML report with: current day characterization, prediction for today's close, prediction for tomorrow's direction, and historical analogues. Run after `--update` on both intervals to have the latest data.
+
 ### `spy_analysis_maxmin.py` — Intraday high/low timing
 ```bash
 python spy_analysis_maxmin.py spy_data/SPY_15m_yfinance_*.csv
@@ -56,6 +63,13 @@ Works with any intraday granularity (15m, 30m, 1h). Finds which time slots most 
 2. KMeans clustering on scaled features to identify day archetypes
 3. Statistical analysis per cluster (Wilson CI on next-day direction)
 4. HTML report generation with embedded JSON data for Plotly charts
+
+**`spy_analysis_live.py` pipeline:**
+1. `load_csv()` — loads both CSVs (1h and 15m), converts to NY timezone
+2. `build_daily_history()` — builds historical daily features from 1h data, excluding today
+3. `extract_today_features()` — computes current-day features from partial 1h + 15m data (uses 15m for finer close price and intraday trend)
+4. `predict_today_close()` — statistical prediction of today's close based on historical analogues
+5. HTML report generation
 
 **`spy_analysis_maxmin.py` pipeline:**
 1. `load_data()` — loads CSV, converts to NY timezone, validates columns

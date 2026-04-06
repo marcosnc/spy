@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPY Live Analysis — 2026-04-06</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f9fafb;color:#111827;font-size:14px;line-height:1.5}
+  .page{max-width:1080px;margin:0 auto;padding:32px 20px 60px}
+  .header{margin-bottom:24px}
+  .header h1{font-size:21px;font-weight:700;margin-bottom:4px}
+  .header p{color:#6b7280;font-size:13px}
+  .g4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:18px}
+  .g2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px}
+  .mc{background:#f3f4f6;border-radius:8px;padding:12px 14px}
+  .mc .lb{font-size:11px;color:#6b7280;margin:0 0 3px;text-transform:uppercase;letter-spacing:.04em}
+  .mc .vl{font-size:22px;font-weight:600;color:#111827;margin:0}
+  .mc .sb{font-size:11px;color:#6b7280;margin:2px 0 0}
+  .card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:14px 18px;margin-bottom:14px}
+  .card.green-border{border-color:#86efac}
+  .sec{font-size:11px;font-weight:600;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;margin:0 0 10px}
+  .feat{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:0.5px solid #f3f4f6;font-size:13px}
+  .feat:last-child{border-bottom:none}
+  .fn{color:#6b7280}
+  .fv{font-weight:600}
+  .verdict{padding:12px 16px;border-radius:8px;margin-top:10px;text-align:center}
+  .verdict-title{font-size:12px;color:#6b7280}
+  .verdict-main{font-size:20px;font-weight:600;margin-top:2px}
+  .verdict-sub{font-size:11px;margin-top:2px}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th{text-align:left;color:#6b7280;font-weight:600;font-size:11px;padding:6px 8px;border-bottom:2px solid #e5e7eb;background:#f9fafb}
+  td{padding:4px 8px;border-bottom:0.5px solid #f3f4f6}
+  tr:hover td{background:#f9fafb}
+  .footer{margin-top:36px;padding-top:14px;border-top:1px solid #e5e7eb;font-size:11px;color:#9ca3af;line-height:1.7}
+  @media(max-width:700px){.g4{grid-template-columns:1fr 1fr}.g2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="page">
+
+<div class="header">
+  <h1>SPY — Análisis en vivo · 2026-04-06</h1>
+  <p>Datos al 2026-04-06 14:00:00-04:00 ET &nbsp;·&nbsp; 721 días históricos (abr 2023 – hoy) &nbsp;·&nbsp; Base rate sube: 53.3%</p>
+</div>
+
+<div class="g4">
+  <div class="mc"><div class="lb">Apertura</div><div class="vl">$655.86</div><div class="sb">prev. $655.18 · gap +0.10%</div></div>
+  <div class="mc"><div class="lb">Precio actual</div><div class="vl" style="color:#16a34a">$657.47</div><div class="sb" style="color:#16a34a">+0.246% desde apertura</div></div>
+  <div class="mc"><div class="lb">Rango del día</div><div class="vl">$4.20</div><div class="sb">$655.52 – $659.72</div></div>
+  <div class="mc"><div class="lb">Progreso sesión</div><div class="vl">5/7</div><div class="sb">barras 1h · 19/26 barras 15m</div></div>
+</div>
+
+<div class="g2">
+
+  <div>
+    <div class="card">
+      <div class="sec">Caracterización del día</div>
+      <div class="feat"><span class="fn">Retorno hasta ahora</span><span class="fv" style="color:#16a34a">+0.246%</span></div>
+      <div class="feat"><span class="fn">Gap de apertura</span><span class="fv" style="color:#16a34a">+0.104% (gap neutro)</span></div>
+      <div class="feat"><span class="fn">Posición del precio en rango</span><span class="fv">46% (cp medio)</span></div>
+      <div class="feat"><span class="fn">Rango intradiario</span><span class="fv">0.640%</span></div>
+      <div class="feat"><span class="fn">Retorno primera hora</span><span class="fv" style="color:#16a34a">+0.383%</span></div>
+      <div class="feat"><span class="fn">Retorno mañana (primera mitad)</span><span class="fv" style="color:#16a34a">+0.162%</span></div>
+      <div class="feat"><span class="fn">Tendencia tarde vs mañana</span><span class="fv" style="color:#dc2626">-0.053% (neutral)</span></div>
+      <div class="feat" style="border:none"><span class="fn">Volumen proyectado</span><span class="fv">0.55x promedio</span></div>
+      <div style="margin-top:12px;padding:10px;background:#f9fafb;border-radius:8px;font-size:12px;color:#6b7280;line-height:1.6">
+        <strong style="color:#374151">Perfil:</strong> día <strong style="color:#374151">ret plano · cp medio</strong> con tendencia intradiaria neutral. Gap gap neutro.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="sec">Señales condicionales → mañana</div>
+      
+    <div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+        <span style="font-size:13px;color:#374151">Posición cierre media (35–55%)</span>
+        <span style="background:#f3f4f6;color:#6b7280;font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500">51.5% ↑</span><span style="font-size:10px;padding:2px 6px;border-radius:4px;background:#f3f4f6;color:#9ca3af;margin-left:4px">p=0.729</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:11px;color:#9ca3af;min-width:32px">51.5%</span>
+        <div style="flex:1;background:#e5e7eb;border-radius:3px;height:6px;overflow:hidden">
+          <div style="width:51.5%;height:100%;border-radius:3px;background:#94a3b8"></div>
+        </div>
+        <span style="font-size:10px;color:#9ca3af">[44–59%]</span>
+      </div>
+    </div>
+    <div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+        <span style="font-size:13px;color:#374151">Gap neutro (±0.2%)</span>
+        <span style="background:#f3f4f6;color:#6b7280;font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500">51.6% ↑</span><span style="font-size:10px;padding:2px 6px;border-radius:4px;background:#f3f4f6;color:#9ca3af;margin-left:4px">p=0.59</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:11px;color:#9ca3af;min-width:32px">51.6%</span>
+        <div style="flex:1;background:#e5e7eb;border-radius:3px;height:6px;overflow:hidden">
+          <div style="width:51.6%;height:100%;border-radius:3px;background:#94a3b8"></div>
+        </div>
+        <span style="font-size:10px;color:#9ca3af">[47–56%]</span>
+      </div>
+    </div>
+    <div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+        <span style="font-size:13px;color:#374151">Retorno plano (±0.3%)</span>
+        <span style="background:#f3f4f6;color:#6b7280;font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500">54.0% ↑</span><span style="font-size:10px;padding:2px 6px;border-radius:4px;background:#f3f4f6;color:#9ca3af;margin-left:4px">p=0.188</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:11px;color:#9ca3af;min-width:32px">54.0%</span>
+        <div style="flex:1;background:#e5e7eb;border-radius:3px;height:6px;overflow:hidden">
+          <div style="width:54.0%;height:100%;border-radius:3px;background:#94a3b8"></div>
+        </div>
+        <span style="font-size:10px;color:#9ca3af">[49–59%]</span>
+      </div>
+    </div>
+    <div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+        <span style="font-size:13px;color:#374151">Tendencia intradiaria neutral</span>
+        <span style="background:#f3f4f6;color:#6b7280;font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500">57.9% ↑</span><span style="font-size:10px;padding:2px 6px;border-radius:4px;background:#f3f4f6;color:#9ca3af;margin-left:4px">p=0.506</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:11px;color:#9ca3af;min-width:32px">57.9%</span>
+        <div style="flex:1;background:#e5e7eb;border-radius:3px;height:6px;overflow:hidden">
+          <div style="width:57.9%;height:100%;border-radius:3px;background:#94a3b8"></div>
+        </div>
+        <span style="font-size:10px;color:#9ca3af">[40–74%]</span>
+      </div>
+    </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="card">
+      <div class="sec">Predicción: cierre de hoy</div>
+      <div style="font-size:12px;color:#6b7280;margin-bottom:12px">295 días con retorno parcial similar a la misma altura de la sesión.</div>
+      <div style="display:flex;gap:10px;margin-bottom:12px">
+        <div class="mc" style="flex:1;text-align:center"><div class="lb">P(sube desde acá)</div><div class="vl" style="font-size:26px">49.5%</div></div>
+        <div class="mc" style="flex:1;text-align:center"><div class="lb">Delta esperado</div><div class="vl" style="font-size:26px;color:#dc2626">-0.011%</div></div>
+      </div>
+      <div style="padding:10px;background:#f9fafb;border-radius:8px;font-size:12px;color:#6b7280;margin-bottom:10px">
+        Cierre proyectado: <strong style="color:#374151">$657.40</strong>
+      </div>
+      <div style="padding:12px;border-radius:8px;background:#f3f4f6;border:0.5px solid #d1d5db;text-align:center"><div style="font-size:12px;color:#6b7280">Cierre de hoy</div><div style="font-size:20px;font-weight:500;color:#374151">Sin sesgo — 50/50</div></div>
+    </div>
+
+    <div class="card green-border">
+      <div class="sec" style="color:#166534">Predicción: mañana (2026-04-06+1)</div>
+      <div style="font-size:12px;color:#6b7280;margin-bottom:12px">Top 20 días más similares en 5 dimensiones históricas.</div>
+      <div style="display:flex;gap:10px;margin-bottom:12px">
+        <div class="mc" style="flex:1;text-align:center"><div class="lb">P(sube mañana)</div><div class="vl" style="font-size:26px;color:#166534">65.0%</div></div>
+        <div class="mc" style="flex:1;text-align:center"><div class="lb">IC 90%</div><div class="vl" style="font-size:18px">[47–80%]</div></div>
+      </div>
+      <div style="font-size:12px;font-weight:600;margin-bottom:8px;color:#6b7280">Top 5 días más similares</div>
+      <table>
+        <tr><th>Fecha</th><th style="text-align:center">Ret</th><th style="text-align:center">Gap</th><th style="text-align:center">CP</th><th style="text-align:center">Sig día+1</th><th style="text-align:right">Ret día+1</th></tr>
+        <tr>
+          <td style="padding:4px 8px;border-bottom:0.5px solid #e5e7eb">2024-11-13</td>
+          <td style="padding:4px 8px;border-bottom:0.5px solid #e5e7eb;text-align:center">-0.03%</td>
+          <td style="padding:4px 8px;border-bottom:0.5px solid #e5e7eb;text-align:center">+0.08%</td>
+          <td style="padding:4px 8px;border-bottom:0.5px solid #e5e7eb;text-align:center">0.52</td>
+          <td style="padding:4px 8px;border-bottom:0.5px solid #e5e7eb;text-align:center;color:#dc2626">Baja</td>
+          <td style="padding:4px 8px;border-bottom:0.5px solid #e5e7eb;text-align:right;color:#dc2626">-0.66%</td>
+        </tr><tr>
+          <td style="padding:4px 8px;border-bottom:0.5px solid #e5e7eb">2023-05-22</td>
+          <td style="padding:4px 8px;border-bottom:0.5px solid #e5e7eb;text-align:center">+0.03%</td>
+          <td style="padding:4px 8px;border-bottom:0.5px solid #e5e7eb;text-align:center">+0.01%</td>
+          <td style="padding:4px 8px;border-bottom:0.5px solid #e5e7eb;text-align:center">0.47</td>
+          <td style="padding:4px 8px;border-bottom:0.5px solid #e5e7eb;text-align:center;color:#dc2626">Baja</td>
+          <td style="padding:4px 8px;border-bottom:0.5px solid #e5e7eb;text-align:right;color:#dc2626">-0.72%</td>
+        </tr><tr>
+          <td style="padding:4px 8px;border-bottom:0.5px solid #e5e7eb">2024-11-08</td>
+          <td style="padding:4px 8px;border-bottom:0.5px solid #e5e7eb;text-align:center">+0.35%</td>
+          <td style="padding:4px 8px;border-bottom:0.5px solid #e5e7eb;text-align:center">+0.10%</td>
+          <td style="padding:4px 8px;border-bottom:0.5px solid #e5e7eb;text-align:center">0.60</td>
+          <td style="padding:4px 8px;border-bottom:0.5px solid #e5e7eb;text-align:center;color:#dc2626">Baja</td>
+          <td style="padding:4px 8px;border-bottom:0.5px solid #e5e7eb;text-align:right;color:#dc2626">-0.21%</td>
+        </tr><tr>
+          <td style="padding:4px 8px;border-bottom:0.5px solid #e5e7eb">2023-11-28</td>
+          <td style="padding:4px 8px;border-bottom:0.5px solid #e5e7eb;text-align:center">+0.18%</td>
+          <td style="padding:4px 8px;border-bottom:0.5px solid #e5e7eb;text-align:center">-0.09%</td>
+          <td style="padding:4px 8px;border-bottom:0.5px solid #e5e7eb;text-align:center">0.50</td>
+          <td style="padding:4px 8px;border-bottom:0.5px solid #e5e7eb;text-align:center;color:#dc2626">Baja</td>
+          <td style="padding:4px 8px;border-bottom:0.5px solid #e5e7eb;text-align:right;color:#dc2626">-0.55%</td>
+        </tr><tr>
+          <td style="padding:4px 8px;border-bottom:0.5px solid #e5e7eb">2023-09-13</td>
+          <td style="padding:4px 8px;border-bottom:0.5px solid #e5e7eb;text-align:center">+0.07%</td>
+          <td style="padding:4px 8px;border-bottom:0.5px solid #e5e7eb;text-align:center">+0.05%</td>
+          <td style="padding:4px 8px;border-bottom:0.5px solid #e5e7eb;text-align:center">0.54</td>
+          <td style="padding:4px 8px;border-bottom:0.5px solid #e5e7eb;text-align:center;color:#16a34a">Sube</td>
+          <td style="padding:4px 8px;border-bottom:0.5px solid #e5e7eb;text-align:right;color:#16a34a">+0.38%</td>
+        </tr>
+      </table>
+      <div style="padding:12px;border-radius:8px;background:#dcfce7;border:1px solid #86efac;text-align:center"><div style="font-size:12px;color:#166534">Mañana</div><div style="font-size:20px;font-weight:500;color:#166534">Sesgo alcista — 65.0%</div><div style="font-size:11px;color:#166534;margin-top:2px">IC 90%: [47%–80%]</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="sec">Distribución histórica: retorno parcial → P(sube desde ese punto al cierre)</div>
+  <div style="position:relative;width:100%;height:180px"><canvas id="histChart"></canvas></div>
+  <div style="font-size:11px;color:#9ca3af;margin-top:8px;line-height:1.6">
+    Cada barra = días con retorno parcial (a 5 barras de 1h) en ese rango. Altura = probabilidad de que el precio suba desde ahí hasta el cierre. La barra resaltada en azul es el rango de hoy.
+  </div>
+</div>
+
+<div class="footer">
+  <strong>Metodología:</strong> caracterización del día actual mediante 8 features intradiarias.
+  Predicción de cierre: k-NN sobre retorno parcial (±0.3%) a la misma barra del día (n=295 análogos).
+  Predicción mañana: k-NN top-20 por similitud euclidiana normalizada en 5 features (retorno, rango, gap, posición cierre, retorno mañana).
+  Señales condicionales: bins univariados con IC Wilson 90% y test-t bilateral.
+  Nota: ninguna señal superó el umbral de significancia estadística (p&lt;0.05) en este día típico.
+  <br><br>
+  <strong>Aviso:</strong> este análisis es puramente estadístico sobre patrones históricos. No es asesoramiento financiero.
+  Los patrones pasados no garantizan resultados futuros. Usar como señal complementaria.
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const histLabels  = ["-2.5", "-2.0", "-1.5", "-1.0", "-0.5", "+0.0", "+0.5", "+1.0", "+1.5", "+2.0"];
+const histPup     = [66.7, 40.0, 40.0, 58.6, 58.7, 47.6, 54.5, 50.0, 50.0, 0];
+const histN       = [3, 5, 30, 87, 213, 254, 101, 24, 4, 1];
+const todayBucket = 5;
+new Chart(document.getElementById('histChart'), {
+  type: 'bar',
+  data: {
+    labels: histLabels,
+    datasets: [{
+      data: histPup,
+      backgroundColor: histLabels.map((_,i) => i===todayBucket ? '#2563eb' : '#d1d5db'),
+      borderRadius: 4, borderSkipped: false,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: {display:false},
+      tooltip: {callbacks: {
+        label: c => {
+          const n=histN[c.dataIndex]; const v=c.parsed.y;
+          return v!=null ? ` P(sube): ${v.toFixed(1)}% (n=${n})` : ' datos insuf.';
+        }
+      }}
+    },
+    scales: {
+      x: {grid:{display:false}, ticks:{font:{size:11},color:'#9ca3af'}},
+      y: {min:0,max:100,
+           grid:{color:'rgba(0,0,0,0.05)'},
+           ticks:{font:{size:11},color:'#9ca3af',callback:v=>v+'%'},
+           title:{display:true,text:'P(sube desde ese punto)',font:{size:10},color:'#9ca3af'}
+      }
+    }
+  }
+});
+</script>
+</body>
+</html>
