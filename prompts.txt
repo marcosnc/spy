@@ -1,0 +1,13 @@
+Antes de la apertura:
+---
+Te paso un archivo con las velas de 15 minutos del SPY desde que inició el año.
+Necesito que caracterices el último día operado y que calcules las probabilidades de que el día de hoy abra -1%, -0.75%, -0.5%, -0.25%, 0%, 0.25%, 0.5%, 0.75%, 1% con respecto al cierre anterior.
+---
+
+
+Durante el día:
+---
+Te paso un archivo con las velas de 15 minutos del SPY desde que inició el año.
+Necesito que calcules las probabilidades de que el día termine -1%, -0.75%, -0.5%, -0.25%, 0%, 0.25%, 0.5%, 0.75%, 1% con respecto al precio actual.
+El precio actual es XXX.
+---
